@@ -1,6 +1,6 @@
 # ============================================================
 #   🏥 Prévision des Passages aux Urgences — Hôpital Mohamed V
-#   Auteur : Issoug El Mehdi
+#   Auteur : Issoug El Mehdi & Bado Ange Yipene Cenacle 
 #   Modèles : Prophet (mensuel) | MLP (journalier)
 # ============================================================
 
@@ -168,7 +168,7 @@ with st.sidebar:
         5️⃣ SARIMA &nbsp;&nbsp;&nbsp;&nbsp;MAE = Moyen
     </div>
     <div style="text-align:center; color:#aacce0; font-size:0.78rem; margin-top:10px;">
-        👨‍💼 Issoug El Mehdi<br>
+        👨‍💼 Issoug El Mehdi & Bado Ange Yipene Cenacle<br>
         Projet Séries Temporelles 2024–2025
     </div>
     """, unsafe_allow_html=True)
@@ -777,7 +777,7 @@ st.markdown("---")
 st.markdown("""
 <div style="text-align:center; color:#7f8c8d; font-size:0.85rem; padding:10px 0;">
 🏥 Hôpital Mohamed V — Meknès &nbsp;|&nbsp;
-Développé par <b>Issoug El Mehdi</b> &nbsp;|&nbsp;
+Développé par <b>Issoug El Mehdi & Bado Ange Yipene Cenacle </b> &nbsp;|&nbsp;
 Modèles : Prophet · MLP &nbsp;|&nbsp;
 🔒 Usage interne uniquement
 </div>
