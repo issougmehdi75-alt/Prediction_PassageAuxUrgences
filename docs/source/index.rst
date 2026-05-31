@@ -27,7 +27,7 @@
 
    - 🌐 **Application en ligne :** `prediction-passageauxurgences.streamlit.app <https://prediction-passageauxurgences.streamlit.app>`_
    - 💻 **Code source :** `GitHub <https://github.com/issougmehdi75-alt/Prediction_PassageAuxUrgences>`_
-   - 👨‍💼 **Auteur :** Issoug El Mehdi — Projet Séries Temporelles 2024–2025
+   -👨‍💼 **Auteurs :** Issoug El Mehdi & Ange Bado Yipene Cenacle — Projet Séries Temporelles 2024–2025
 
 ----
 
