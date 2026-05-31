@@ -6,8 +6,8 @@ import sys
 
 # -- Project information -----------------------------------------------------
 project = 'Prévision des Passages aux Urgences'
-copyright = '2025, Issoug El Mehdi & Ange Bado Yipene Cenacle'
-author = 'Issoug El Mehdi & Ange Bado Yipene Cenacle'
+copyright = '2025, Issoug El Mehdi'
+author = 'Issoug El Mehdi'
 release = '1.0.0'
 
 # -- General configuration ---------------------------------------------------
