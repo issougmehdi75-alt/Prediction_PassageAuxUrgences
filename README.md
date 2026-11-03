@@ -21,7 +21,7 @@
 
 ## 🎯 Présentation du projet
 
-Ce projet a été développé dans le cadre d'un **projet de fin d'études en séries temporelles (2024–2025)**. Il vise à prédire le nombre quotidien et mensuel de passages aux urgences de l'Hôpital Mohamed V de Meknès, afin d'aider les équipes médicales à :
+Ce projet a été développé dans le cadre d'un **projet d'initiation en séries temporelles (2024–2025)**. Il vise à prédire le nombre quotidien et mensuel de passages aux urgences de l'Hôpital Mohamed V de Meknès, afin d'aider les équipes médicales à :
 
 - 📈 **Anticiper les pics d'affluence**
 - 👨‍⚕️ **Optimiser la planification du personnel**
