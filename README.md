@@ -1,269 +1,163 @@
-# 🏥 Prévision des Passages aux Urgences
-### Hôpital Mohamed V — Meknès
+# 🏥 Prévision des passages aux urgences — Hôpital Mohamed V, Meknès
 
-> **Outil d'aide à la décision médicale** pour anticiper le nombre de passages aux urgences, basé sur des modèles de séries temporelles avancés.
+Application **Streamlit** de prévision du nombre de passages aux urgences, **par mois** (Prophet) et **par jour** (réseau de neurones MLP), avec intervalles d'incertitude et évaluation hors-échantillon.
 
----
+🌐 **Application en ligne :** [prediction-passageauxurgences.streamlit.app](https://prediction-passageauxurgences.streamlit.app) · 📚 **Documentation :** `docs/` (Sphinx / Read the Docs)
 
-## 📋 Table des matières
-
-- [Présentation du projet](#-présentation-du-projet)
-- [Démonstration](#-démonstration)
-- [Modèles utilisés](#-modèles-utilisés)
-- [Installation](#-installation)
-- [Utilisation](#-utilisation)
-- [Format des données](#-format-des-données)
-- [Structure du projet](#-structure-du-projet)
-- [Performances](#-performances-des-modèles)
-- [Auteur](#-auteur)
+![Page de prédiction](docs/images/prediction_journaliere.png)
 
 ---
 
-## 🎯 Présentation du projet
+## Sommaire
 
-Ce projet a été développé dans le cadre d'un **projet d'initiation en séries temporelles (2024–2025)**. Il vise à prédire le nombre quotidien et mensuel de passages aux urgences de l'Hôpital Mohamed V de Meknès, afin d'aider les équipes médicales à :
-
-- 📈 **Anticiper les pics d'affluence**
-- 👨‍⚕️ **Optimiser la planification du personnel**
-- 🏥 **Améliorer la prise en charge des patients**
-- 📦 **Gérer les ressources matérielles** en conséquence
-
-L'application est construite avec **Streamlit** et propose une interface intuitive en 2 pages : une page d'introduction analytique et une page de prédiction interactive.
-
----
-
-## 🖥️ Démonstration
-
-### Page Introduction
-- Présentation du projet et des données
-- Pipeline complet du traitement (5 étapes)
-- Tableau comparatif des 6 modèles testés
-- Graphique des performances (MAE)
-- Résultats des tests statistiques de stationnarité
-
-### Page Prédiction
-- Choix entre prévision **mensuelle** ou **journalière**
-- Chargement d'un fichier Excel personnel
-- Sélection de la plage de prédiction via un slider
-- Affichage des résultats avec intervalles de confiance à **95%**
-- Courbe interactive historique + prévisions (Plotly)
-- Export des résultats en Excel
+- [Contexte](#contexte)
+- [Données](#données)
+- [Résultats](#résultats)
+- [Méthodologie](#méthodologie)
+- [Installation](#installation)
+- [Utilisation](#utilisation)
+- [Structure du projet](#structure-du-projet)
+- [Limites et perspectives](#limites-et-perspectives)
+- [Auteurs](#auteurs)
 
 ---
 
-## 🤖 Modèles utilisés
+## Contexte
 
-### 📅 Prévision Mensuelle — Prophet (Facebook/Meta)
+Projet réalisé dans le cadre du module **Séries temporelles (2024–2025)**. Objectif : aider le service des urgences à **anticiper l'affluence** pour planifier le personnel et les ressources.
 
-[Prophet](https://facebook.github.io/prophet/) est un modèle statistique bayésien développé par Meta, idéal pour les séries temporelles avec tendances et saisonnalités.
+![Page Introduction](docs/images/introduction.png)
 
-**Configuration :**
-```python
-Prophet(
-    yearly_seasonality=True,
-    weekly_seasonality=False,
-    daily_seasonality=False,
-    interval_width=0.95,
-    changepoint_prior_scale=0.3
-)
-```
+L'application comporte deux pages :
 
-### 📆 Prévision Journalière — MLP (Réseau de neurones)
-
-Un **MLPRegressor** (scikit-learn) avec feature engineering temporel avancé :
-
-| Feature | Description |
+| Page | Contenu |
 |---|---|
-| `lag_1, lag_2, lag_3` | Valeurs des 1, 2, 3 jours précédents |
-| `lag_7, lag_14` | Valeurs J-7 et J-14 (saisonnalité hebdo) |
-| `roll_7, roll_14` | Moyenne glissante sur 7 et 14 jours |
-| `dow_sin, dow_cos` | Encodage cyclique du jour de la semaine |
-| `month_sin, month_cos` | Encodage cyclique du mois |
-| `dayofyear, quarter` | Position dans l'année |
+| **Introduction** | données, démarche, comparaison des modèles, tests de stationnarité, limites |
+| **Prédiction** | choix mensuel / journalier, données du projet ou fichier Excel, horizon, prévisions + intervalle 95 %, erreur attendue, export Excel |
 
-**Architecture :**
-```
-Couches : (128 → 64 → 32) neurones — Activation : ReLU
-Optimisation : Adam — Learning rate : 0.001
-Early stopping : activé (patience = 20 itérations)
-```
+## Données
 
----
+| Série | Statut | Période | Taille |
+|---|---|---|---|
+| `data/passages_mensuels.xlsx` | **réelle** — totaux mensuels | janv. 2024 → mai 2025 | 17 mois (moy. 7 409 / mois) |
+| `data/passages_journaliers_simules.xlsx` | **simulée** | 01/01/2024 → 31/05/2025 | 517 jours (moy. 244 / jour) |
 
-## ⚙️ Installation
+> ⚠️ **La série journalière est simulée.** L'hôpital n'a fourni que des totaux mensuels. Chaque total est réparti aléatoirement sur les jours du mois par un tirage multinomial ([`scripts/simuler_journalier.py`](scripts/simuler_journalier.py)) :
+> - la somme des jours redonne **exactement** le total mensuel réel ;
+> - la variabilité jour à jour est de type Poisson ;
+> - un **profil hebdomadaire** (lundi +8 %, samedi −6 %…) est appliqué comme **hypothèse de simulation**. La saisonnalité de 7 jours que les modèles « découvrent » vient de cette hypothèse, pas d'une observation.
+>
+> Les performances journalières mesurent donc la capacité des modèles à retrouver la structure de la simulation et devront être revalidées sur de vraies données journalières.
 
-### Prérequis
+## Résultats
 
-- Python **3.9+**
-- pip
+Toutes les valeurs ci-dessous sont **calculées** par [`scripts/evaluer_modeles.py`](scripts/evaluer_modeles.py) et enregistrées dans [`results/metriques.json`](results/metriques.json) (lu par l'application).
 
-### Étapes
+### Prévision journalière — backtest sur les 112 derniers jours (8 × 14 jours, récursif)
 
-**1. Cloner le dépôt**
+| Modèle | MAE | RMSE | MAPE |
+|---|---:|---:|---:|
+| Ridge (features) | 14,1 | 17,3 | 5,6 % |
+| **MLP** *(retenu)* | **14,2** | **17,7** | **5,8 %** |
+| SARIMA(1,1,1)(1,0,1)₇ | 14,4 | 17,6 | 5,8 % |
+| Moyenne mobile 7 j *(réf.)* | 15,0 | 20,0 | 6,0 % |
+| Prophet | 15,2 | 18,6 | 6,0 % |
+| Gradient Boosting | 15,6 | 19,3 | 6,2 % |
+| Naïf saisonnier J-7 *(réf.)* | 18,9 | 23,8 | 7,6 % |
+| Naïf veille *(réf.)* | 19,1 | 25,3 | 7,4 % |
+| *Plancher théorique (oracle)* | *12,2* | | |
+
+- Le MLP réduit l'erreur de **25 %** par rapport au modèle naïf « même jour la semaine précédente ».
+- MLP, Ridge et SARIMA sont **à égalité** : les écarts (< 2 %) sont inférieurs au bruit.
+- Le **plancher théorique** est l'erreur d'un oracle qui connaîtrait la valeur moyenne exacte de chaque jour sous la simulation : l'écart restant est un bruit aléatoire qu'aucun modèle ne peut prévoir. Les meilleurs modèles en sont proches (14,2 vs 12,2).
+
+### Prévision mensuelle — prévision à 1 mois sur les 6 derniers mois
+
+| Modèle | MAE | MAPE |
+|---|---:|---:|
+| Moyenne mobile 3 mois *(réf.)* | 197 | 2,6 % |
+| **Prophet** *(retenu)* | 210 | 2,8 % |
+| Naïf mois précédent *(réf.)* | 392 | 5,2 % |
+
+Avec 17 mois, Prophet et la moyenne mobile sont équivalents ; 6 points de test ne permettent pas de les départager. Prophet est conservé pour ses intervalles d'incertitude et parce qu'il exploitera la saisonnalité annuelle dès que l'historique dépassera 24 mois.
+
+### Tests de stationnarité (ADF : H₀ racine unitaire · KPSS : H₀ stationnaire)
+
+| Série | Transformation | ADF p | KPSS p | Conclusion |
+|---|---|---:|---:|---|
+| mensuelle | niveau | 0,0002 | ≥ 0,10 | stationnaire |
+| journalière | niveau | 0,0033 | ≤ 0,01 | non stationnaire (KPSS rejette) |
+| journalière | différence ordre 1 | < 0,0001 | ≥ 0,10 | stationnaire → d = 1 |
+
+## Méthodologie
+
+- **Évaluation hors-échantillon (backtest à origine glissante)** : le modèle est entraîné sur le passé, prévoit la fenêtre suivante, puis l'origine avance. Aucune erreur n'est mesurée sur les données d'entraînement.
+- **Baselines** : chaque modèle est comparé à des prévisions naïves ; un modèle qui ne les bat pas n'apporte rien.
+- **MLP journalier** : features = lags (1, 2, 3, 7, 14 j), moyennes glissantes (7, 14 j), encodage cyclique jour/mois, indicateur week-end ; toutes calculées uniquement à partir du passé (pas de fuite de données). Architecture (64, 32), ReLU, Adam, régularisation L2, early stopping. Prévision **récursive** et évaluée comme telle.
+- **Intervalle 95 % du MLP** : σ(h) = c·√h, avec c estimé sur les erreurs du backtest, plafonné par l'écart-type de la série → l'intervalle **s'élargit avec l'horizon**.
+- **Prophet mensuel** : saisonnalité annuelle activée seulement si l'historique couvre ≥ 24 mois ; `changepoint_prior_scale = 0.05`.
+
+## Installation
+
 ```bash
-git clone https://github.com/votre-repo/prediction-urgences.git
-cd prediction-urgences
-```
-
-**2. Créer un environnement virtuel** *(recommandé)*
-```bash
-python -m venv venv
-source venv/bin/activate        # Linux / macOS
-venv\Scripts\activate           # Windows
-```
-
-**3. Installer les dépendances**
-```bash
+git clone https://github.com/issougmehdi75-alt/Prediction_PassageAuxUrgences.git
+cd Prediction_PassageAuxUrgences
+python -m venv .venv && source .venv/bin/activate   # Windows : .venv\Scripts\activate
 pip install -r requirements.txt
-```
-
-**4. Lancer l'application**
-```bash
 streamlit run streamlit_app.py
 ```
 
-L'application s'ouvre automatiquement sur `http://localhost:8501`
+Python 3.10+ (testé avec 3.13). Prophet installe automatiquement CmdStan.
 
-### Fichier `requirements.txt`
+Recalculer les données et les métriques :
 
-```
-streamlit>=1.30.0
-pandas>=2.0.0
-numpy>=1.24.0
-plotly>=5.18.0
-prophet>=1.1.5
-scikit-learn>=1.3.0
-openpyxl>=3.1.0
+```bash
+python scripts/simuler_journalier.py     # régénère la série journalière (graine 42)
+python scripts/evaluer_modeles.py        # recalcule results/metriques.json (~10 s)
+pip install -r requirements-dev.txt && python -m pytest -q   # tests
 ```
 
----
+## Utilisation
 
-## 📖 Utilisation
+1. Page **Prédiction** → choisir **Mensuelle** ou **Journalière**.
+2. Choisir **Données du projet** ou **Mon fichier Excel** (un exemple est téléchargeable).
+3. Régler l'horizon (1–12 mois ou 1–60 jours) puis **Générer les prévisions**.
+4. Lire la prévision, l'intervalle 95 %, l'**erreur attendue** (MAE/MAPE hors-échantillon) et le gain par rapport au modèle naïf ; exporter en Excel (feuilles Prévisions, Historique, Évaluation).
 
-### Étape 1 — Choisir le type de prévision
+**Format du fichier** : colonne A = date, colonne B = nombre de passages. Dates acceptées : cellules date Excel, `2024-01-01`, `01/01/2024`, `Janvier 2024`, `janv. 2024`. L'en-tête est ignoré, les doublons sont additionnés, les jours/mois manquants sont signalés et interpolés. Minimum : 8 mois ou 60 jours.
 
-Sur la page **Prédiction**, sélectionnez :
-- `📅 Prévision MENSUELLE` → utilise Prophet
-- `📆 Prévision JOURNALIÈRE` → utilise MLP
-
-### Étape 2 — Charger votre fichier Excel
-
-Téléchargez d'abord le fichier exemple pour voir le format attendu, puis chargez votre propre fichier.
-
-### Étape 3 — Choisir la plage
-
-Utilisez le slider pour sélectionner le nombre de mois (1–24) ou de jours (1–90) à prédire. **Seules les dates futures** sont autorisées.
-
-### Étape 4 — Générer et exporter
-
-Cliquez sur **"🔮 Générer les prévisions"** et obtenez :
-- Les prévisions avec intervalles de confiance à 95%
-- La fiabilité estimée en %
-- La courbe interactive historique + prédictions
-- Un fichier Excel exportable
-
----
-
-## 📁 Format des données
-
-### Prévision mensuelle
-
-| Mois | Passages |
-|---|---|
-| 2024-01-01 | 7340 |
-| 2024-02-01 | 6850 |
-| 2024-03-01 | 7120 |
-| ... | ... |
-
-Formats de date acceptés : `2024-01-01`, `01/01/2024`, `Janvier 2024`, `Jan 2024`
-
-### Prévision journalière
-
-| Date | Passages |
-|---|---|
-| 2024-01-01 | 245 |
-| 2024-01-02 | 231 |
-| 2024-01-03 | 258 |
-| ... | ... |
-
-### Règles importantes
-
-- ✅ Exactement **2 colonnes** : Date + Nombre de passages
-- ✅ Minimum **6 lignes** de données valides
-- ✅ Les en-têtes sont détectés et ignorés automatiquement
-- ❌ Pas de cellules fusionnées
-- ❌ Pas de colonnes supplémentaires
-- ❌ Pas de lignes vides au milieu des données
-
----
-
-## 🗂️ Structure du projet
+## Structure du projet
 
 ```
-prediction-urgences/
-│
-├── streamlit_app.py          # Application principale Streamlit
-├── requirements.txt          # Dépendances Python
-├── README.md                 # Ce fichier
-│
-├── data/
-│   ├── exemple_journalier.xlsx   # Exemple données journalières (60 jours)
-│   └── exemple_mensuel.xlsx      # Exemple données mensuelles (17 mois)
-│
-└── notebook/
-    └── Issoug_ElMehdi_Projet_TimeSeries_Hopital_v2.ipynb  # Analyse complète
+├── streamlit_app.py            # interface (2 pages)
+├── urgences/
+│   ├── donnees.py              # lecture/validation Excel, dates françaises
+│   ├── modeles.py              # baselines, SARIMA, Prophet, Ridge, GBM, MLP, backtest, intervalles
+│   ├── prevision.py            # orchestration utilisée par l'application
+│   ├── simulation.py           # désagrégation mensuel → journalier
+│   ├── graphiques.py           # figures Plotly (palette unique)
+│   └── style.py                # CSS
+├── scripts/
+│   ├── simuler_journalier.py
+│   └── evaluer_modeles.py
+├── data/                       # passages_mensuels.xlsx, passages_journaliers_simules.xlsx
+├── results/metriques.json      # métriques calculées
+├── tests/test_projet.py        # tests pytest
+├── docs/                       # documentation Sphinx
+└── .streamlit/config.toml      # thème
 ```
 
----
+## Limites et perspectives
 
-## 📊 Performances des modèles
+- Données journalières **simulées** (voir ci-dessus) ; historique mensuel **court** (17 mois).
+- Aucune variable explicative : jours fériés, Ramadan, météo, épidémies saisonnières (grippe, bronchiolite) seraient des pistes naturelles.
+- L'exploration initiale incluait XGBoost, LightGBM, LSTM et GRU ; ces résultats n'ont pas été conservés et ne sont pas présentés.
+- Les prévisions sont **indicatives** et ne remplacent pas le jugement des équipes.
 
-Résultats obtenus sur les données de l'Hôpital Mohamed V :
+Voir [`docs/source/changelog.rst`](docs/source/changelog.rst) pour les corrections apportées en v2.0.
 
-| Rang | Modèle | Type | MAE Journalier | Remarque |
-|---|---|---|---|---|
-| 🥇 1er | **MLP** | Réseau de neurones | **≈ 7** | ⭐ Meilleur modèle |
-| 🥈 2e | **Prophet** | Statistique bayésien | Excellent | Idéal pour le mensuel |
-| 🥉 3e | **XGBoost** | Gradient Boosting | ≈ 22 | Rapide et robuste |
-| 4e | **LightGBM** | Gradient Boosting | ≈ 47 | Très léger |
-| 5e | **LSTM / GRU** | Deep Learning | ≈ 55–58 | Manque de données |
-| 6e | **SARIMA+GARCH** | Statistique classique | ≈ 100 | Linéaire uniquement |
+## Auteurs
 
-### Tests de stationnarité
+**Issoug El Mehdi** · **Bado Ange Yipene Cenacle** — Projet Séries Temporelles 2024–2025, Hôpital Mohamed V, Meknès.
 
-| Test | Résultat | Conclusion |
-|---|---|---|
-| ADF (Augmented Dickey-Fuller) | p < 0.05 | ✅ Stationnaire après différenciation |
-| KPSS | p > 0.05 | ✅ Stationnaire confirmé |
-| Phillips-Perron | p < 0.05 | ✅ Cohérent avec ADF |
-
-> La série est **non-stationnaire à l'origine** mais devient stationnaire après une différenciation d'ordre 1 (d=1). Une composante saisonnière hebdomadaire (S=7) a été détectée.
-
----
-
-## 🐛 Problèmes connus et solutions
-
-### `TypeError: Addition/subtraction of integers and integer-arrays with Timestamp`
-
-**Cause :** `plotly.add_vline()` est incompatible avec `pandas >= 2.0` car il tente d'additionner des entiers à un `pd.Timestamp` en interne.
-
-**Solution appliquée :** Remplacement par `fig.add_shape()` + `fig.add_annotation()` avec `str(date.date())`.
-
-### `NDFrame.fillna() got an unexpected keyword argument 'method'`
-
-**Cause :** L'argument `method=` a été supprimé dans `pandas >= 2.0`.
-
-**Solution appliquée :** Remplacement par `.bfill().ffill()`.
-
----
-
-## 👨‍💼 Auteur
-
-**Issoug El Mehdi**
-**Bado Ange Yipene Cenacle** 
-Projet Séries Temporelles — 2024–2025
-Hôpital Mohamed V, Meknès
-
----
-
-> 🔒 *Usage interne uniquement — Hôpital Mohamed V, Meknès*
+Licence : [Apache 2.0](LICENSE).
