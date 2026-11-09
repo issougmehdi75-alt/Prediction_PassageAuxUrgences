@@ -1,0 +1,172 @@
+{
+  "genere_le": "2026-11-09",
+  "donnees": {
+    "mensuel": {
+      "n": 17,
+      "debut": "2024-01-01",
+      "fin": "2025-05-01",
+      "moyenne": 7409.4
+    },
+    "journalier": {
+      "n": 517,
+      "debut": "2024-01-01",
+      "fin": "2025-05-31",
+      "moyenne": 243.6,
+      "simule": true
+    }
+  },
+  "protocole": {
+    "journalier": {
+      "horizon": 14,
+      "plis": 8
+    },
+    "mensuel": {
+      "horizon": 1,
+      "plis": 6
+    }
+  },
+  "stationnarite": [
+    {
+      "serie": "mensuelle",
+      "transformation": "niveau",
+      "n": 17,
+      "adf_stat": -4.468,
+      "adf_p": 0.0002,
+      "kpss_stat": 0.291,
+      "kpss_p": 0.1,
+      "stationnaire": true
+    },
+    {
+      "serie": "mensuelle",
+      "transformation": "différence d'ordre 1",
+      "n": 16,
+      "adf_stat": -4.745,
+      "adf_p": 0.0001,
+      "kpss_stat": 0.259,
+      "kpss_p": 0.1,
+      "stationnaire": true
+    },
+    {
+      "serie": "journalière (simulée)",
+      "transformation": "niveau",
+      "n": 517,
+      "adf_stat": -3.768,
+      "adf_p": 0.0033,
+      "kpss_stat": 0.848,
+      "kpss_p": 0.01,
+      "stationnaire": false
+    },
+    {
+      "serie": "journalière (simulée)",
+      "transformation": "différence d'ordre 1",
+      "n": 516,
+      "adf_stat": -7.595,
+      "adf_p": 0.0,
+      "kpss_stat": 0.02,
+      "kpss_p": 0.1,
+      "stationnaire": true
+    }
+  ],
+  "acf_journalier": {
+    "1": 0.191,
+    "7": 0.411,
+    "14": 0.306
+  },
+  "backtest_journalier": [
+    {
+      "modele": "Ridge (features)",
+      "baseline": false,
+      "MAE": 14.14,
+      "RMSE": 17.25,
+      "MAPE": 5.59,
+      "duree_s": 0.6
+    },
+    {
+      "modele": "MLP",
+      "baseline": false,
+      "MAE": 14.2,
+      "RMSE": 17.66,
+      "MAPE": 5.75,
+      "duree_s": 0.8
+    },
+    {
+      "modele": "SARIMA(1,1,1)(1,0,1)₇",
+      "baseline": false,
+      "MAE": 14.36,
+      "RMSE": 17.56,
+      "MAPE": 5.76,
+      "duree_s": 1.9
+    },
+    {
+      "modele": "Moyenne mobile 7 j",
+      "baseline": true,
+      "MAE": 15.04,
+      "RMSE": 20.01,
+      "MAPE": 6.02,
+      "duree_s": 0.0
+    },
+    {
+      "modele": "Prophet",
+      "baseline": false,
+      "MAE": 15.2,
+      "RMSE": 18.65,
+      "MAPE": 6.04,
+      "duree_s": 0.9
+    },
+    {
+      "modele": "Gradient Boosting",
+      "baseline": false,
+      "MAE": 15.59,
+      "RMSE": 19.34,
+      "MAPE": 6.2,
+      "duree_s": 2.4
+    },
+    {
+      "modele": "Naïf saisonnier (J-7)",
+      "baseline": true,
+      "MAE": 18.91,
+      "RMSE": 23.79,
+      "MAPE": 7.63,
+      "duree_s": 0.0
+    },
+    {
+      "modele": "Naïf (veille)",
+      "baseline": true,
+      "MAE": 19.12,
+      "RMSE": 25.26,
+      "MAPE": 7.43,
+      "duree_s": 0.0
+    }
+  ],
+  "plancher_journalier": {
+    "MAE": 12.16,
+    "RMSE": 14.97,
+    "MAPE": 4.86
+  },
+  "backtest_mensuel": [
+    {
+      "modele": "Moyenne mobile 3 mois",
+      "baseline": true,
+      "MAE": 197.22,
+      "RMSE": 272.59,
+      "MAPE": 2.6,
+      "duree_s": 0.0
+    },
+    {
+      "modele": "Prophet",
+      "baseline": false,
+      "MAE": 210.23,
+      "RMSE": 271.68,
+      "MAPE": 2.81,
+      "duree_s": 0.4
+    },
+    {
+      "modele": "Naïf (mois précédent)",
+      "baseline": true,
+      "MAE": 391.67,
+      "RMSE": 468.6,
+      "MAPE": 5.2,
+      "duree_s": 0.0
+    }
+  ]
+}
